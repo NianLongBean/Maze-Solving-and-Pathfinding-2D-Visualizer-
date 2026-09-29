@@ -1,22 +1,5 @@
 from cell import Cell
 
-# class Grid:
-#     def __init__(self, rows, cols):
-#         self.rows = rows
-#         self.cols = cols
-#         self.cells = []
-
-#         for r in range(rows):
-#             row = []
-#             for c in range(cols): 
-#                 row.append(Cell(r, c))
-#             self.cells.append(row)
-#         self.start = None
-#         self.target = None
-
-#     def get_cell(self, row, col):
-#         return self.cells[row][col]
-
 class Grid:
 
     def __init__(self, rows, cols):
@@ -32,18 +15,18 @@ class Grid:
             self.start = None
             self.target = None
     def get_cell(self,row,col):
-        return self.cells[row][col]
+        return self.cells[self.rows][self.cols]
 
-    def get_neighbours(self, cell):
-        neighbours=[]
+    def get_neighbors(self, cell):
+        neighbors=[]
         r, c = cell.row, cell.col
         directions = [(-1, 0),(1, 0),(0, -1),(0, 1)] #phai,trai,tren,duoi
 
         for dr, dc in directions:
             nr, nc = r + dr, c + dc #n is neighbors, d is direction
             if 0 <= nr < self.rows and 0 <= nc < self.cols:
-                neighbours.append(self.cells[nr][nc])
-        return neighbours
+                neighbors.append(self.cells[nr][nc])
+        return neighbors
 
     #clear
     def clear_path(self):

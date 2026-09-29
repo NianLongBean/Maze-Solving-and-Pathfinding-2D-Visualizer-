@@ -4,6 +4,9 @@ from grid import Grid
 from mouse_handler import MouseHandler
 from cell import Cell
 from maze_gen import MazeGenerator
+from aigen_note import ControlsNote
+from assetsloader import AssetLoader
+import bfs 
 
 # VVVVVVVVVVVVVVV
 # Setting/Cài đặt
@@ -20,9 +23,10 @@ HEIGHT = ROWS * CELL_SIZE
 # INITIALIZE
 # VVVVVVVVVVVVVV
 
+asset_loader = AssetLoader(CELL_SIZE)
 pg.init()
 screen = pg.display.set_mode((WIDTH, HEIGHT))
-pg.display.set_caption("Grid Project")
+pg.display.set_caption("Maze Solving & Pathfinding Visualizer")
 clock = pg.time.Clock()
 grid = Grid(ROWS, COLS)
 
@@ -31,7 +35,11 @@ mouse_handler = MouseHandler(
     CELL_SIZE
 )
 
+maze_gen = MazeGenerator(grid)
 
+
+#initiate controls note at pos(x,y)
+controls_note = ControlsNote(x=10, y=10)
 # VVVVVVVVVVVVVVV
 # DRAW
 # VVVVVVVVVVVVVVV
@@ -42,20 +50,23 @@ def draw_grid():
             cell = grid.get_cell(r, c)
             x = c * CELL_SIZE
             y = r * CELL_SIZE
-            if cell.state == Cell.EMPTY:
-                color = (240, 240, 240)
 
-            elif cell.state == Cell.WALL:
-                color = (30, 30, 30)
+            drawn_by_asset = asset_loader.draw_cell(screen, cell, x, y)
+            if not drawn_by_asset:
+                if cell.state == Cell.EMPTY:
+                    color = (240, 240, 240)
 
-            elif cell.state == Cell.START:
-                color = (0, 200, 0)
+                elif cell.state == Cell.WALL:
+                    color = (30, 30, 30)
 
-            else:
-                color = (200, 0, 0)
+                elif cell.state == Cell.START:
+                    color = (0, 200, 0)
 
-            pg.draw.rect(screen,color,(x, y, CELL_SIZE, CELL_SIZE))
-            pg.draw.rect(screen,(100, 100, 100),(x, y, CELL_SIZE, CELL_SIZE),1)
+                else:
+                    color = (200, 0, 0)
+
+                pg.draw.rect(screen,color,(x, y, CELL_SIZE, CELL_SIZE))
+                pg.draw.rect(screen,(100, 100, 100),(x, y, CELL_SIZE, CELL_SIZE),1)
 # VVVVVVVVVVVVVVV
 # MAIN LOOP
 # VVVVVVVVVVVVVVV
@@ -71,6 +82,10 @@ while running:
         if event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
                 mouse_handler.mouse_pressed = True
+                x,y = pg.mouse.get_pos()
+                mouse_handler.handle_click(
+                    x, y, is_initial_press = True
+                )
 
         # Mouse button released
         if event.type == pg.MOUSEBUTTONUP:
@@ -85,6 +100,18 @@ while running:
                 mouse_handler.set_mode("start")
             elif event.key == pg.K_t:
                 mouse_handler.set_mode("target")
+
+        #3. Press 'M' to gen a random maze
+            elif event.key==pg.K_m:
+                maze_gen.generate_maze()
+            elif event.key==pg.K_b:
+                 visited_order, path = bfs.bfs(grid)
+                 for cell in visited_order:
+                     cell.state = Cell.VISITED
+                 for cell in path:
+                     cell.state = Cell.PATH
+            elif event.key==pg.K_c:
+                     grid.clear_path()
   
 # Handle mouse
 
@@ -96,6 +123,9 @@ while running:
 # Draw
     screen.fill((255, 255, 255))
     draw_grid()
+
+    controls_note.draw(screen)
+
     pg.display.update()
     clock.tick(60)
 

@@ -1,4 +1,5 @@
 from cell import Cell
+from grid import Grid
 
 class MouseHandler:
 
@@ -64,3 +65,6 @@ class MouseHandler:
 
         self.grid.target = cell
         cell.state = Cell.TARGET
+
+    def find_start_target(self):
+        return self.grid.start, self.grid.target

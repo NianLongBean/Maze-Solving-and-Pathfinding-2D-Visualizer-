@@ -7,6 +7,7 @@ from maze_gen import MazeGenerator
 from aigen_note import ControlsNote
 from assetsloader import AssetLoader
 import bfs 
+import DFS
 
 # VVVVVVVVVVVVVVV
 # Setting/Cài đặt
@@ -110,6 +111,12 @@ while running:
                      cell.state = Cell.VISITED
                  for cell in path:
                      cell.state = Cell.PATH
+            elif event.key==pg.K_d:
+                 path = DFS.dfs(grid, grid.start , grid.target)
+                 for cell in visited_order:
+                    cell.state = Cell.VISITED
+                 for cell in path:
+                    cell.state = Cell.PATH
             elif event.key==pg.K_c:
                      grid.clear_path()
   

@@ -1,9 +1,9 @@
 from cell import Cell
 
 
-def get_neighbors(grid, cell):
+def get_neighbours(grid, cell):
 
-    neighbors = []
+    neighbours = []
 
     directions = [
         (-1, 0),  # trên
@@ -20,13 +20,13 @@ def get_neighbors(grid, cell):
         # Kiểm tra có nằm trong Grid không
         if 0 <= new_row < grid.rows and 0 <= new_col < grid.cols:
 
-            neighbor = grid.get_cell(new_row, new_col)
+            neighbour = grid.get_cell(new_row, new_col)
 
             # Không đi xuyên qua tường
-            if neighbor.state != Cell.WALL:
-                neighbors.append(neighbor)
+            if neighbour.state != Cell.WALL:
+                neighbours.append(neighbour)
 
-    return neighbors
+    return neighbours
 
 
 def dfs(grid, start, target):
@@ -49,13 +49,13 @@ def dfs(grid, start, target):
             break
 
         # Tìm các ô có thể đi tới
-        for neighbor in get_neighbors(grid, current):
+        for neighbour in get_neighbours(grid, current):
 
-            if neighbor not in visited:
+            if neighbour not in visited:
 
-                parent[neighbor] = current
+                parent[neighbour] = current
 
-                stack.append(neighbor)
+                stack.append(neighbour)
 
     # Không tìm thấy đường
     if target not in visited:

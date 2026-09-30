@@ -7,6 +7,7 @@ class MouseHandler:
         self.cell_size = cell_size
         self.mouse_pressed = False
         self.mode = "wall"
+        self.draw_wall_mode= True #true ve tuong, false xoa tuong
 
     def set_mode(self, mode):
         self.mode = mode
@@ -17,15 +18,24 @@ class MouseHandler:
         return row, col
 
 
-    def handle_click(self, x, y):
+    def handle_click(self, x, y, is_initial_press=False):
         row, col = self.mouse_to_cell(x, y)
         if row < 0 or row >= self.grid.rows:
             return
         if col < 0 or col >= self.grid.cols:
             return
+        
         cell = self.grid.get_cell(row, col)
+        
         if self.mode == "wall":
-            self.toggle_wall(cell)
+        #Khi bam chuot xac dinh xem luot keo nay la ve hay xoa
+            if is_initial_press:
+                self.draw_wall_mode=cell.state!=Cell.WALL
+            if self.draw_wall_mode and cell.state != Cell.WALL:
+                cell.state = Cell.WALL
+            elif not self.draw_wall_mode and cell.state == Cell.WALL:
+                cell.state = Cell.EMPTY
+            #self.toggle_wall(cell)
         elif self.mode == "start":
             self.set_start(cell)
         elif self.mode == "target":
@@ -46,7 +56,11 @@ class MouseHandler:
 
 
     def set_target(self, cell):
+        if cell.state== Cell.WALL or cell == self.grid.start:
+            return
+
         if self.grid.target is not None:
             self.grid.target.state = Cell.EMPTY
+
         self.grid.target = cell
         cell.state = Cell.TARGET

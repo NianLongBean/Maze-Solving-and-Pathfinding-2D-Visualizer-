@@ -135,10 +135,12 @@ while running:
                     visited_order, path = dfs(grid, start, target)
 
                     for cell in visited_order:
-                        cell.state = Cell.VISITED
+                        if cell != start and cell != target:
+                            cell.state = Cell.VISITED
 
                     for cell in path:
-                        cell.state = Cell.PATH
+                        if cell != start and cell != target:
+                            cell.state = Cell.PATH
 
             elif event.key == pg.K_c:
                 grid.clear_path()

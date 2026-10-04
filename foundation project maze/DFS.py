@@ -38,7 +38,9 @@ def dfs(grid, start, target):
             continue
 
         visited.add(current)
-        visited_order.append(current)
+
+        if current != start and current != target:
+            visited_order.append(current)
 
         if current == target:
             break
@@ -60,7 +62,6 @@ def dfs(grid, start, target):
         path.append(current)
         current = parent[current]
 
-    path.append(start)
     path.reverse()
 
     return visited_order, path

@@ -2,7 +2,6 @@ from collections import deque
 from cell import Cell
 
 
-
 def bfs(grid):
     if not grid.start or not grid.target:
         return [], []

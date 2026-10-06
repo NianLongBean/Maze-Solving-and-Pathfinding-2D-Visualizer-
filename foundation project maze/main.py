@@ -7,6 +7,7 @@ from aigen_note import ControlsNote
 from assetsloader import AssetLoader
 import bfs 
 from DFS import dfs
+from dijkstra import dijkstra
 
 # VVVVVVVVVVVVVVV
 # Setting/Cài đặt
@@ -141,7 +142,22 @@ while running:
                     for cell in path:
                         if cell != start and cell != target:
                             cell.state = Cell.PATH
+            
+            # Mới add Key cho Dijkstra (Bấm J là được)
+            elif event.key == pg.K_j:
+                start, target = mouse_handler.find_start_target()
 
+                if start is not None and target is not None:
+                    visited_order, path = dijkstra(grid, start, target)
+
+                    for cell in visited_order:
+                        if cell != start and cell != target:
+                            cell.state = Cell.VISITED
+
+                    for cell in path:
+                        if cell != start and cell != target:
+                            cell.state = Cell.PATH
+            
             elif event.key == pg.K_c:
                 grid.clear_path()
   

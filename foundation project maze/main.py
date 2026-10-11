@@ -8,6 +8,7 @@ from assetsloader import AssetLoader
 import bfs 
 from DFS import dfs
 from dijkstra import dijkstra
+from Astar import astar
 
 # VVVVVVVVVVVVVVV
 # Setting/Cài đặt
@@ -157,6 +158,22 @@ while running:
                     for cell in path:
                         if cell != start and cell != target:
                             cell.state = Cell.PATH
+            
+            # Press A to run A* Search
+            elif event.key == pg.K_a:
+                start, target = mouse_handler.find_start_target()
+
+                if start is not None and target is not None:
+                    visited_order, path = astar(grid, start, target)
+
+                    for cell in visited_order:
+                        if cell != start and cell != target:
+                            cell.state = Cell.VISITED
+
+                    for cell in path:
+                        if cell != start and cell != target:
+                            cell.state = Cell.PATH
+
             
             elif event.key == pg.K_c:
                 grid.clear_path()

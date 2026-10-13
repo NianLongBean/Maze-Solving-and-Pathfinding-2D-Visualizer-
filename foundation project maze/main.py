@@ -8,6 +8,8 @@ from assetsloader import AssetLoader
 import bfs 
 from DFS import dfs
 from dijkstra import dijkstra
+from path_position import get_path_coordinates
+from data_recorder import run_and_record
 
 # VVVVVVVVVVVVVVV
 # Setting/Cài đặt
@@ -121,8 +123,12 @@ while running:
                 maze_gen.generate_maze()
 
             elif event.key == pg.K_b:
-                visited_order, path = bfs.bfs(grid)
-
+                visited_order, path, stats = run_and_record(
+                    "BFS", bfs.bfs, grid, start=grid.start, target=grid.target
+                )
+                coordinates = get_path_coordinates(path)
+                print(coordinates)
+                                    
                 for cell in visited_order:
                     cell.state = Cell.VISITED
 
@@ -133,8 +139,12 @@ while running:
                 start, target = mouse_handler.find_start_target()
 
                 if start is not None and target is not None:
-                    visited_order, path = dfs(grid, start, target)
-
+                    visited_order, path, stats = run_and_record(
+                        "DFS", dfs, grid, start, target, start=start, target=target
+                    )
+                    coordinates = get_path_coordinates(path)
+                    print(coordinates)
+                                        
                     for cell in visited_order:
                         if cell != start and cell != target:
                             cell.state = Cell.VISITED
@@ -148,8 +158,14 @@ while running:
                 start, target = mouse_handler.find_start_target()
 
                 if start is not None and target is not None:
-                    visited_order, path = dijkstra(grid, start, target)
+                    visited_order, path, stats = run_and_record(
+                        "Dijkstra", dijkstra, grid, start, target, start=start, target=target
+                    )
 
+                    print(stats)
+                    coordinates = get_path_coordinates(path)
+                    print(coordinates)
+                    
                     for cell in visited_order:
                         if cell != start and cell != target:
                             cell.state = Cell.VISITED

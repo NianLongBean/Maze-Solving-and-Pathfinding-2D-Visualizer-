@@ -1,6 +1,8 @@
 import heapq
+from itertools import count
 from cell import Cell
 
+counter = count()
 
 def dijkstra(grid, start, target):
     # Count distances from start to each cell and store them
@@ -8,12 +10,12 @@ def dijkstra(grid, start, target):
     parent = {}
     
     # (distance, cell)
-    priority_queue = [(0, start)]
+    priority_queue = [(0, next(counter), start)]
     visited = set()
     visited_order = []
 
     while priority_queue:
-        current_distance, current = heapq.heappop(priority_queue)
+        current_distance, _, current = heapq.heappop(priority_queue)
         
         if current in visited: continue 
         visited.add(current)
@@ -27,7 +29,10 @@ def dijkstra(grid, start, target):
             if neighbour not in distance or new_distance < distance[neighbour]:
                 distance[neighbour] = new_distance
                 parent[neighbour] = current
-                heapq.heappush(priority_queue,(new_distance, neighbour))
+                heapq.heappush(
+                    priority_queue,
+                    (new_distance, next(counter), neighbour)
+                )
 
     # did not find a path to the target
     if target not in visited: return visited_order, []
@@ -35,8 +40,9 @@ def dijkstra(grid, start, target):
     # final path reconstruction
     path = []
     current = target
-    while current != start: path.append(current) 
-    current = parent[current]
+    while current != start: 
+        path.append(current) 
+        current = parent[current]
 
     path.reverse()
     return visited_order, path

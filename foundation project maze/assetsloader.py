@@ -1,3 +1,5 @@
+import os
+
 import pygame as pg
 
 from cell import Cell
@@ -7,24 +9,31 @@ class AssetLoader:
     def __init__(self, cell_size):
         self.cell_size = cell_size
 
+        # Get the directory where this script (assetsloader.py) is located
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
         try:
             self.wall_img = pg.transform.scale(
-                pg.image.load("assets/wall.png"), (cell_size, cell_size)
+                pg.image.load(os.path.join(BASE_DIR, "assets", "wall.png")),
+                (cell_size, cell_size)
             )
             self.start_img = pg.transform.scale(
-                pg.image.load("assets/start.png"), (cell_size, cell_size)
+                pg.image.load(os.path.join(BASE_DIR, "assets", "start.png")),
+                (cell_size, cell_size)
             )
             self.target_img = pg.transform.scale(
-                pg.image.load("assets/target.png"), (cell_size, cell_size)
+                pg.image.load(os.path.join(BASE_DIR, "assets", "target.png")),
+                (cell_size, cell_size)
             )
             self.empty_img = pg.transform.scale(
-                pg.image.load("assets/empty.png"), (cell_size, cell_size)
+                pg.image.load(os.path.join(BASE_DIR, "assets", "empty.png")),
+                (cell_size, cell_size)
             )
             self.has_assets = True
         except pg.error:
             # Trường hợp chưa có file ảnh, hệ thống sẽ tự fallback về vẽ màu mặc định
             self.has_assets = False
-
+            
     # Hàm vẽ nhận tham số screen, cell, x, y từ ngoài truyền vào
     def draw_cell(self, screen, cell, x, y):
         if not self.has_assets:

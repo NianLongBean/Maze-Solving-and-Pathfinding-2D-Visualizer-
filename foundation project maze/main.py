@@ -8,7 +8,10 @@ from assetsloader import AssetLoader
 import bfs 
 from DFS import dfs
 from dijkstra import dijkstra
+from path_position import get_path_coordinates
+from data_recorder import run_and_record
 from Astar import astar
+
 
 # VVVVVVVVVVVVVVV
 # Setting/Cài đặt
@@ -212,7 +215,12 @@ while running:
             
             # Press B to run BFS
             elif event.key == pg.K_b:
-                visited_order, found_path = bfs.bfs(grid)
+                visited_order, found_path, stats = run_and_record(
+                    "BFS", bfs.bfs, grid,
+                    start=grid.start, target=grid.target
+                )
+                print(stats)
+                print(get_path_coordinates(found_path))
                 start_animation(visited_order, found_path)
 
             # Press D to run DFS
@@ -220,19 +228,26 @@ while running:
                 start, target = mouse_handler.find_start_target()
 
                 if start is not None and target is not None:
-                    visited_order, found_path = dfs(grid, start, target)
+                    visited_order, found_path, stats = run_and_record(
+                        "DFS", dfs, grid, start, target, start=start, target=target
+                    )
+                    print(stats)
+                    print(get_path_coordinates(found_path))
                     start_animation(visited_order, found_path)
-
+            
             # Press J to run Dijkstra
             elif event.key == pg.K_j:
                 start, target = mouse_handler.find_start_target()
 
                 if start is not None and target is not None:
-                    visited_order, found_path = dijkstra(
-                        grid, start, target
+                    visited_order, found_path, stats = run_and_record(
+                        "Dijkstra", dijkstra, grid, start, target,
+                        start=start, target=target
                     )
+                    print(stats)
+                    print(get_path_coordinates(found_path))
                     start_animation(visited_order, found_path)
-
+           
             # Press A to run A*
             elif event.key == pg.K_a:
                 start, target = mouse_handler.find_start_target()
@@ -243,7 +258,6 @@ while running:
                     )
                     start_animation(visited_order, found_path)
 
-            
             # Press UP to speed up
             elif event.key == pg.K_UP:
                 SIMULATION_DELAY = max(
@@ -263,8 +277,6 @@ while running:
                 animation_active = False
                 grid.clear_path()
                 path = []
-
-  
 
     # Handle mouse
     if mouse_handler.mouse_pressed:

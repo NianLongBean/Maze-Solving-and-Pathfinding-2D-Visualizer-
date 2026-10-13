@@ -1,3 +1,4 @@
+
 import heapq
 from itertools import count
 from cell import Cell
@@ -45,4 +46,5 @@ def dijkstra(grid, start, target):
         current = parent[current]
 
     path.reverse()
+
     return visited_order, path

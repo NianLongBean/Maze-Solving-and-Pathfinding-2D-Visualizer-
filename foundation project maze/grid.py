@@ -29,8 +29,9 @@ class Grid:
             for c in range(cols):
                 row.append(Cell(r,c)) #append adds a single element to the end of a collection
             self.cells.append(row)
-            self.start = None
-            self.target = None
+
+        self.start = None
+        self.target = None
     def get_cell(self,row,col):
         return self.cells[row][col]
 

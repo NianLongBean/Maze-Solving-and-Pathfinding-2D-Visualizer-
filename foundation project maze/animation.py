@@ -1,57 +1,105 @@
+
 import pygame as pg
-from grid import *
 from cell import Cell
-from path_position import *
-pg.init()
 
-def start_animation(visited_order, found_path, stats, grid):
-    global animation_active, animation_visited, animation_path
-    global animation_index, animation_path_index, animation_phase
-    global last_animation_update, runtime_ms, visited_count, path_coords, path_length
 
-    grid.clear_path()
-    animation_visited = visited_order
-    animation_path = found_path
-    
-    # Cập nhật thông số từ data_recorder & path_position
-    runtime_ms = stats["runtime_ms"]
-    visited_count = stats["visited_count"]
-    path_length = stats["path_length"]
-    path_coords = get_path_coordinates(found_path)
+class AnimationController:
+    def __init__(
+        self,
+        grid,
+        delay=50,
+        min_delay=10,
+        max_delay=300,
+        delay_step=10
+    ):
+        self.grid = grid
 
-    animation_index = 0
-    animation_path_index = 0
-    animation_phase = "visited"
-    last_animation_update = pg.time.get_ticks()
-    animation_active = bool(animation_visited or animation_path)
+        # Animation settings
+        self.delay = delay
+        self.min_delay = min_delay
+        self.max_delay = max_delay
+        self.delay_step = delay_step
 
-def update_animation(grid, speed_slider):
-    global animation_active, animation_index, animation_path_index
-    global animation_phase, last_animation_update
+        # Animation state
+        self.active = False
+        self.visited = []
+        self.path_cells = []
 
-    if not animation_active:
-        return
+        self.visited_index = 0
+        self.path_index = 0
+        self.phase = "visited"
+        self.last_update = 0
 
-    current_time = pg.time.get_ticks()
-    if current_time - last_animation_update < speed_slider.val:
-        return
+    def start(self, visited_order, found_path):
+        # Clear the previous visualization
+        self.clear()
 
-    last_animation_update = current_time
+        # Store algorithm results
+        self.visited = list(visited_order)
+        self.path_cells = list(found_path)
 
-    if animation_phase == "visited":
-        if animation_index < len(animation_visited):
-            cell = animation_visited[animation_index]
-            if cell != grid.start and cell != grid.target:
-                cell.state = Cell.VISITED
-            animation_index += 1
-        else:
-            animation_phase = "path"
+        # Reset animation progress
+        self.visited_index = 0
+        self.path_index = 0
+        self.phase = "visited"
+        self.last_update = pg.time.get_ticks()
 
-    elif animation_phase == "path":
-        if animation_path_index < len(animation_path):
-            cell = animation_path[animation_path_index]
-            if cell != grid.start and cell != grid.target:
-                cell.state = Cell.PATH
-            animation_path_index += 1
-        else:
-            animation_active = False
+        self.active = bool(self.visited or self.path_cells)
+
+    def update(self):
+        if not self.active:
+            return
+
+        current_time = pg.time.get_ticks()
+
+        # Wait until the next update is due
+        if current_time - self.last_update < self.delay:
+            return
+
+        self.last_update = current_time
+
+        # Phase 1: Animate visited cells
+        if self.phase == "visited":
+            if self.visited_index < len(self.visited):
+                cell = self.visited[self.visited_index]
+
+                if cell != self.grid.start and cell != self.grid.target:
+                    cell.state = Cell.VISITED
+
+                self.visited_index += 1
+            else:
+                self.phase = "path"
+
+        # Phase 2: Animate the final path
+        elif self.phase == "path":
+            if self.path_index < len(self.path_cells):
+                cell = self.path_cells[self.path_index]
+
+                if cell != self.grid.start and cell != self.grid.target:
+                    cell.state = Cell.PATH
+
+                self.path_index += 1
+            else:
+                self.active = False
+
+    def speed_up(self):
+        self.delay = max(
+            self.min_delay,
+            self.delay - self.delay_step
+        )
+
+    def slow_down(self):
+        self.delay = min(
+            self.max_delay,
+            self.delay + self.delay_step
+        )
+
+    def clear(self):
+        self.active = False
+        self.grid.clear_path()
+
+        if self.grid.start is not None:
+            self.grid.start.state = Cell.START
+
+        if self.grid.target is not None:
+            self.grid.target.state = Cell.TARGET

@@ -260,12 +260,12 @@ def draw_grid():
                 )
 
             # Draw the cell border
-            pg.draw.rect(
-                screen,
-                (210, 210, 210),
-                (x, y, CELL_SIZE, CELL_SIZE),
-                1
-            )
+            # pg.draw.rect(
+            #     screen,
+            #     (210, 210, 210),
+            #     (x, y, CELL_SIZE, CELL_SIZE),
+            #     1
+            # )
 
 
 # ==================================================

@@ -4,6 +4,7 @@ from mouse_handler import MouseHandler
 from cell import Cell
 from maze_gen import MazeGenerator
 from assetsloader import AssetLoader
+from animation import *
 
 # Import các thuật toán
 import bfs 
@@ -60,6 +61,7 @@ last_animation_update = 0
 
 runtime_ms = 0.0
 visited_count = 0
+path_length = 0
 path_coords = []
 
 # VVVVVVVVVVVVVVV
@@ -83,57 +85,7 @@ btn_run = Button(MAZE_WIDTH + 15, MAZE_HEIGHT + 15, 150, 35, "Run", bg_color=(12
 btn_clear = Button(MAZE_WIDTH + 15, MAZE_HEIGHT + 60, 150, 35, "Clear", bg_color=(240, 130, 130))
 
 
-def start_animation(visited_order, found_path, stats):
-    global animation_active, animation_visited, animation_path
-    global animation_index, animation_path_index, animation_phase
-    global last_animation_update, runtime_ms, visited_count, path_coords
 
-    grid.clear_path()
-    animation_visited = visited_order
-    animation_path = found_path
-    
-    # Cập nhật thông số từ data_recorder & path_position
-    runtime_ms = stats["runtime_ms"]
-    visited_count = stats["visited_count"]
-    path_coords = get_path_coordinates(found_path)
-
-    animation_index = 0
-    animation_path_index = 0
-    animation_phase = "visited"
-    last_animation_update = pg.time.get_ticks()
-    animation_active = bool(animation_visited or animation_path)
-
-
-def update_animation():
-    global animation_active, animation_index, animation_path_index
-    global animation_phase, last_animation_update
-
-    if not animation_active:
-        return
-
-    current_time = pg.time.get_ticks()
-    if current_time - last_animation_update < speed_slider.val:
-        return
-
-    last_animation_update = current_time
-
-    if animation_phase == "visited":
-        if animation_index < len(animation_visited):
-            cell = animation_visited[animation_index]
-            if cell != grid.start and cell != grid.target:
-                cell.state = Cell.VISITED
-            animation_index += 1
-        else:
-            animation_phase = "path"
-
-    elif animation_phase == "path":
-        if animation_path_index < len(animation_path):
-            cell = animation_path[animation_path_index]
-            if cell != grid.start and cell != grid.target:
-                cell.state = Cell.PATH
-            animation_path_index += 1
-        else:
-            animation_active = False
 
 
 def execute_selected_algorithm():
@@ -195,10 +147,12 @@ def draw_ui_panels():
     txt_stats = title_font.render("Stats", True, (0, 0, 0))
     txt_runtime = font.render(f"runtime: {runtime_ms} ms", True, (0, 0, 0))
     txt_visited = font.render(f"visited: {visited_count}", True, (0, 0, 0))
+    txt_length = font.render(f"path_length: {path_length}", True, (0, 0, 0))
 
     screen.blit(txt_stats, (MAZE_WIDTH + 15, 15))
     screen.blit(txt_runtime, (MAZE_WIDTH + 15, 50))
     screen.blit(txt_visited, (MAZE_WIDTH + 15, 80))
+    screen.blit(txt_length, (MAZE_WIDTH + 15, 110))
 
     # 2. Khung viền lớn chứa Bàn cờ (The maze)
     maze_border = pg.Rect(0, 0, MAZE_WIDTH, MAZE_HEIGHT)
@@ -275,6 +229,7 @@ while running:
                 grid.clear_path()
                 runtime_ms = 0.0
                 visited_count = 0
+                path_length = 0
                 path_coords = []
 
         elif event.type == pg.MOUSEBUTTONUP and event.button == 1:

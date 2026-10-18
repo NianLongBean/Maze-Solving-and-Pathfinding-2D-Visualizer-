@@ -12,10 +12,12 @@ from DFS import dfs
 from dijkstra import dijkstra
 from Astar import astar
 
+from comparison_view import ComparisonView
 from animation import AnimationController
 from data_recorder import run_and_record
 from path_position import get_path_coordinates
 from ui import Button, Slider, Dropdown
+from stats_manager import StatsManager
 
 
 # ==================================================
@@ -37,7 +39,7 @@ MAZE_WIDTH = COLS * CELL_SIZE
 MAZE_HEIGHT = ROWS * CELL_SIZE
 
 STATS_WIDTH = 180
-PANEL_HEIGHT = 110
+PANEL_HEIGHT = 150
 
 SCREEN_WIDTH = MAZE_WIDTH + STATS_WIDTH
 SCREEN_HEIGHT = MAZE_HEIGHT + PANEL_HEIGHT
@@ -72,7 +74,27 @@ runtime_ms = 0.0
 visited_count = 0
 path_length = 0
 path_coords = []
+stats_manager = StatsManager()
+comparison_view = ComparisonView()
+def test_stats_comparison(maze_id):
+    results = stats_manager.compare_algorithms(maze_id)
 
+    if not results:
+        print("No statistics found for this maze.")
+        return
+
+    print(f"\nComparison for maze: {maze_id}")
+    print("-" * 75)
+
+    for result in results:
+        print(
+            f"Algorithm: {result['algorithm']} | "
+            f"Runs: {result['total_runs']} | "
+            f"Success: {result['success_rate']:.1f}% | "
+            f"Runtime: {result['avg_runtime_ms']:.3f} ms | "
+            f"Visited: {result['avg_visited_count']:.1f} | "
+            f"Path: {result['avg_path_length']}"
+        )
 
 # ==================================================
 # 5. CREATE UI COMPONENTS
@@ -134,6 +156,13 @@ btn_clear = Button(
     "Clear",
     bg_color=(240, 130, 130)
 )
+btn_compare = Button(
+    MAZE_WIDTH + 15,
+    MAZE_HEIGHT + 100,
+    150,
+    35,
+    "Compare",
+)
 
 
 # ==================================================
@@ -151,6 +180,10 @@ def execute_selected_algorithm():
     # Start and target must both exist
     if start is None or target is None:
         return
+    
+    maze_id = stats_manager.generate_maze_id(
+        grid, start, target
+    )
 
     selected = algo_dropdown.get_selected()
 
@@ -202,11 +235,21 @@ def execute_selected_algorithm():
     else:
         return
 
-    # Update statistics
+        # Update statistics
     runtime_ms = stats["runtime_ms"]
     visited_count = stats["visited_count"]
     path_length = stats["path_length"]
     path_coords = get_path_coordinates(found_path)
+
+    # Save statistics only once
+    stats_manager.record(stats, maze_id=maze_id)
+
+    # Display comparison in terminal
+    test_stats_comparison(maze_id)
+
+    # Start the animation only once
+    animation.delay = speed_slider.val
+    animation.start(visited_order, found_path)
 
     # Start the animation using the separate controller
     animation.delay = speed_slider.val
@@ -352,6 +395,7 @@ def draw_ui_panels():
 
     # Draw the dropdown last so its menu stays visible
     algo_dropdown.draw(screen, font)
+    btn_compare.draw(screen, font)
 
 
 # ==================================================
@@ -386,7 +430,9 @@ while running:
         if event.type == pg.QUIT:
             running = False
             continue
-
+        # Close comparison view with ESC
+        if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+            comparison_view.visible = False
         # Let the slider handle its own events
         speed_slider.handle_event(event)
 
@@ -444,6 +490,8 @@ while running:
             # Clear the visualization
             elif btn_clear.is_clicked((mx, my)):
                 clear_visualization()
+            elif btn_compare.is_clicked((mx, my)):
+                comparison_view.visible = True
 
         # Mouse released
         elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
@@ -467,6 +515,13 @@ while running:
 
     draw_grid()
     draw_ui_panels()
+    if stats_manager.history:
+        latest_maze_id = stats_manager.history[-1]["maze_id"]
+        results = stats_manager.compare_algorithms(latest_maze_id)
+    else:
+        results = []
+
+    comparison_view.draw(screen, results)
 
     pg.display.update()
     clock.tick(60)

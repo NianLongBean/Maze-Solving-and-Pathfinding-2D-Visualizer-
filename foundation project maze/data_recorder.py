@@ -25,7 +25,7 @@ def run_and_record(name, algorithm, *args, start, target):
     #record explored cells
     visited_count = len(visited_order)
 
-    # recỏd moves in the path
+    # record moves in the path
     path_length = calculate_path_length(path, start, target)
 
     stats = {

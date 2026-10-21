@@ -1,0 +1,2 @@
+﻿run_id,timestamp,maze_id,algorithm,runtime_ms,visited_count,path_length,found_path
+1,2026-10-21T11:39:48,86cd437de64c,A*,0.48,215,94,True

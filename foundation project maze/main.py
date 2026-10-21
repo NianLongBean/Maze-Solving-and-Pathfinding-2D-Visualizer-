@@ -1,164 +1,300 @@
+
 import pygame as pg
+
 from grid import Grid
 from mouse_handler import MouseHandler
 from cell import Cell
 from maze_gen import MazeGenerator
-from aigen_note import ControlsNote
 from assetsloader import AssetLoader
-import bfs 
+
+import bfs
 from DFS import dfs
 from dijkstra import dijkstra
-from path_position import get_path_coordinates
-from data_recorder import run_and_record
 from Astar import astar
 
+from comparison_view import ComparisonView
+from animation import AnimationController
+from data_recorder import run_and_record
+from path_position import get_path_coordinates
+from ui import Button, Slider, Dropdown
+from stats_manager import StatsManager
 
-# VVVVVVVVVVVVVVV
-# Setting/Cài đặt
-# VVVVVVVVVVVVVVV
+
+# ==================================================
+# 1. INITIALIZE PYGAME
+# ==================================================
+
+pg.init()
+
+
+# ==================================================
+# 2. SETTINGS
+# ==================================================
 
 ROWS = 20
 COLS = 30
-CELL_SIZE = 30
-WIDTH = COLS * CELL_SIZE
-HEIGHT = ROWS * CELL_SIZE
+CELL_SIZE = 25
+
+MAZE_WIDTH = COLS * CELL_SIZE
+MAZE_HEIGHT = ROWS * CELL_SIZE
+
+STATS_WIDTH = 180
+PANEL_HEIGHT = 150
+
+SCREEN_WIDTH = MAZE_WIDTH + STATS_WIDTH
+SCREEN_HEIGHT = MAZE_HEIGHT + PANEL_HEIGHT
+
+screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pg.display.set_caption("Maze Solving & Pathfinding Visualizer")
+
+clock = pg.time.Clock()
+
+font = pg.font.SysFont("Arial", 14, bold=True)
+title_font = pg.font.SysFont("Arial", 16, bold=True)
 
 
-# VVVVVVVVVVVVVVV
-# INITIALIZE
-# VVVVVVVVVVVVVV
+# ==================================================
+# 3. CREATE OBJECTS
+# ==================================================
 
 asset_loader = AssetLoader(CELL_SIZE)
-pg.init()
-screen = pg.display.set_mode((WIDTH, HEIGHT))
-pg.display.set_caption("Maze Solving & Pathfinding Visualizer")
-clock = pg.time.Clock()
+
 grid = Grid(ROWS, COLS)
-
-# Animation settings
-SIMULATION_DELAY = 50  # Milliseconds between cell updates
-MIN_DELAY = 10
-MAX_DELAY = 300
-DELAY_STEP = 10
-
-# Animation state
-animation_active = False
-animation_visited = []
-animation_path = []
-animation_index = 0
-animation_path_index = 0
-animation_phase = "visited"
-last_animation_update = 0
-
-
-mouse_handler = MouseHandler(
-    grid,
-    CELL_SIZE
-)
-path=[]
-
-
+mouse_handler = MouseHandler(grid, CELL_SIZE)
 maze_gen = MazeGenerator(grid)
 
-
-#initiate controls note at pos(x,y)
-controls_note = ControlsNote(x=10, y=10)
-# VVVVVVVVVVVVVVV
-# DRAW
-# VVVVVVVVVVVVVVV
-
-def start_animation(visited_order, found_path):
-    global path
-    global animation_active
-    global animation_visited, animation_path
-    global animation_index, animation_path_index
-    global animation_phase, last_animation_update
-
-    # Clear the previous visualization
-    grid.clear_path()
-    path = []
-
-    # Store the results of the algorithm
-    animation_visited = visited_order
-    animation_path = found_path
-
-    # Reset animation progress
-    animation_index = 0
-    animation_path_index = 0
-    animation_phase = "visited"
-
-    # Record the animation start time
-    last_animation_update = pg.time.get_ticks()
-
-    animation_active = bool(animation_visited or animation_path)
+animation = AnimationController(grid)
 
 
-def update_animation():
-    global path
-    global animation_active
-    global animation_index, animation_path_index
-    global animation_phase, last_animation_update
+# ==================================================
+# 4. STATISTICS
+# ==================================================
 
-    if not animation_active:
+runtime_ms = 0.0
+visited_count = 0
+path_length = 0
+path_coords = []
+stats_manager = StatsManager()
+comparison_view = ComparisonView()
+def test_stats_comparison(maze_id):
+    results = stats_manager.compare_algorithms(maze_id)
+
+    if not results:
+        print("No statistics found for this maze.")
         return
 
-    current_time = pg.time.get_ticks()
+    print(f"\nComparison for maze: {maze_id}")
+    print("-" * 75)
 
-    # Wait until the next update is due
-    if current_time - last_animation_update < SIMULATION_DELAY:
+    for result in results:
+        print(
+            f"Algorithm: {result['algorithm']} | "
+            f"Runs: {result['total_runs']} | "
+            f"Success: {result['success_rate']:.1f}% | "
+            f"Runtime: {result['avg_runtime_ms']:.3f} ms | "
+            f"Visited: {result['avg_visited_count']:.1f} | "
+            f"Path: {result['avg_path_length']}"
+        )
+
+# ==================================================
+# 5. CREATE UI COMPONENTS
+# ==================================================
+
+# Algorithm dropdown and speed slider
+algo_dropdown = Dropdown(
+    15,
+    MAZE_HEIGHT + 15,
+    180,
+    32,
+    ["Astar", "Dijkstra", "BFS", "DFS"]
+)
+
+speed_slider = Slider(
+    15,
+    MAZE_HEIGHT + 65,
+    180,
+    10,
+    200,
+    50,
+    label="speed"
+)
+
+# Cell editing buttons
+btn_wall = Button(
+    225, MAZE_HEIGHT + 15, 75, 32, "Wall"
+)
+
+btn_start = Button(
+    305, MAZE_HEIGHT + 15, 75, 32, "Start"
+)
+
+btn_target = Button(
+    385, MAZE_HEIGHT + 15, 75, 32, "Target"
+)
+
+btn_maze = Button(
+    225, MAZE_HEIGHT + 60, 235, 32, "Generate Maze"
+)
+
+btn_wall.selected = True
+
+# Run and Clear buttons
+btn_run = Button(
+    MAZE_WIDTH + 15,
+    MAZE_HEIGHT + 15,
+    150,
+    35,
+    "Run",
+    bg_color=(120, 220, 120)
+)
+
+btn_clear = Button(
+    MAZE_WIDTH + 15,
+    MAZE_HEIGHT + 60,
+    150,
+    35,
+    "Clear",
+    bg_color=(240, 130, 130)
+)
+btn_compare = Button(
+    MAZE_WIDTH + 15,
+    MAZE_HEIGHT + 100,
+    150,
+    35,
+    "Compare",
+)
+
+
+# ==================================================
+# 6. RUN SELECTED ALGORITHM
+# ==================================================
+
+def execute_selected_algorithm():
+    global runtime_ms
+    global visited_count
+    global path_length
+    global path_coords
+
+    start, target = mouse_handler.find_start_target()
+
+    # Start and target must both exist
+    if start is None or target is None:
+        return
+    
+    maze_id = stats_manager.generate_maze_id(
+        grid, start, target
+    )
+
+    selected = algo_dropdown.get_selected()
+
+    # Clear the previous animation before a new run
+    animation.clear()
+
+    # Run the selected algorithm and record statistics
+    if selected == "BFS":
+        visited_order, found_path, stats = run_and_record(
+            "BFS",
+            lambda: bfs.bfs(grid),
+            start=start,
+            target=target
+        )
+
+    elif selected == "DFS":
+        visited_order, found_path, stats = run_and_record(
+            "DFS",
+            dfs,
+            grid,
+            start,
+            target,
+            start=start,
+            target=target
+        )
+
+    elif selected == "Dijkstra":
+        visited_order, found_path, stats = run_and_record(
+            "Dijkstra",
+            dijkstra,
+            grid,
+            start,
+            target,
+            start=start,
+            target=target
+        )
+
+    elif selected == "Astar":
+        visited_order, found_path, stats = run_and_record(
+            "A*",
+            astar,
+            grid,
+            start,
+            target,
+            start=start,
+            target=target
+        )
+
+    else:
         return
 
-    last_animation_update = current_time
+        # Update statistics
+    runtime_ms = stats["runtime_ms"]
+    visited_count = stats["visited_count"]
+    path_length = stats["path_length"]
+    path_coords = get_path_coordinates(found_path)
 
-    # Phase 1: Show visited cells one by one
-    if animation_phase == "visited":
+    # Save statistics only once
+    stats_manager.record(stats, maze_id=maze_id)
 
-        if animation_index < len(animation_visited):
-            cell = animation_visited[animation_index]
+    # Display comparison in terminal
+    test_stats_comparison(maze_id)
 
-            if cell != grid.start and cell != grid.target:
-                cell.state = Cell.VISITED
+    # Start the animation only once
+    animation.delay = speed_slider.val
+    animation.start(visited_order, found_path)
 
-            animation_index += 1
+    # Start the animation using the separate controller
+    animation.delay = speed_slider.val
+    animation.start(visited_order, found_path)
 
-        else:
-            animation_phase = "path"
 
-    # Phase 2: Show the final path one cell at a time
-    elif animation_phase == "path":
-
-        if animation_path_index < len(animation_path):
-            cell = animation_path[animation_path_index]
-
-            if cell != grid.start and cell != grid.target:
-                cell.state = Cell.PATH
-                path.append(cell)
-
-            animation_path_index += 1
-
-        else:
-            animation_active = False
+# ==================================================
+# 7. DRAW THE MAZE
+# ==================================================
 
 def draw_grid():
-    for r in range(grid.rows):
-        for c in range(grid.cols):
-            cell = grid.get_cell(r, c)
-            x = c * CELL_SIZE
-            y = r * CELL_SIZE
+    for row in range(grid.rows):
+        for col in range(grid.cols):
+            cell = grid.get_cell(row, col)
 
-            drawn_by_asset = asset_loader.draw_cell(screen, cell, x, y)
+            x = col * CELL_SIZE
+            y = row * CELL_SIZE
 
+            # Try drawing with the project's asset loader
+            drawn_by_asset = asset_loader.draw_cell(
+                screen, cell, x, y
+            )
+
+            # Fallback colors if no asset was drawn
             if not drawn_by_asset:
-                if cell in path:
-                    color = (255, 255, 0)
-                elif cell.state == Cell.EMPTY:
-                    color = (240, 240, 240)
+                if cell.state == Cell.EMPTY:
+                    color = (245, 245, 245)
+
                 elif cell.state == Cell.WALL:
-                    color = (30, 30, 30)
+                    color = (40, 40, 40)
+
                 elif cell.state == Cell.START:
                     color = (0, 200, 0)
+
+                elif cell.state == Cell.TARGET:
+                    color = (220, 0, 0)
+
+                elif cell.state == Cell.VISITED:
+                    color = (175, 215, 245)
+
+                elif cell.state == Cell.PATH:
+                    color = (255, 215, 0)
+
                 else:
-                    color = (200, 0, 0)
+                    color = (200, 200, 200)
 
                 pg.draw.rect(
                     screen,
@@ -166,133 +302,233 @@ def draw_grid():
                     (x, y, CELL_SIZE, CELL_SIZE)
                 )
 
-                pg.draw.rect(
-                    screen,
-                    (100, 100, 100),
-                    (x, y, CELL_SIZE, CELL_SIZE),
-                    1
-                )
-# VVVVVVVVVVVVVVV
-# MAIN LOOP
-# VVVVVVVVVVVVVVV
+            # Draw the cell border
+            # pg.draw.rect(
+            #     screen,
+            #     (210, 210, 210),
+            #     (x, y, CELL_SIZE, CELL_SIZE),
+            #     1
+            # )
+
+
+# ==================================================
+# 8. DRAW UI PANELS
+# ==================================================
+
+def draw_ui_panels():
+    # Statistics panel on the right
+    stats_rect = pg.Rect(
+        MAZE_WIDTH, 0, STATS_WIDTH, MAZE_HEIGHT
+    )
+
+    pg.draw.rect(screen, (255, 255, 255), stats_rect)
+    pg.draw.rect(screen, (0, 0, 0), stats_rect, 2)
+
+    txt_stats = title_font.render(
+        "Stats", True, (0, 0, 0)
+    )
+
+    txt_runtime = font.render(
+        f"runtime: {runtime_ms:.3f} ms",
+        True,
+        (0, 0, 0)
+    )
+
+    txt_visited = font.render(
+        f"visited: {visited_count}",
+        True,
+        (0, 0, 0)
+    )
+
+    txt_length = font.render(
+        f"path_length: {path_length}",
+        True,
+        (0, 0, 0)
+    )
+
+    screen.blit(txt_stats, (MAZE_WIDTH + 15, 15))
+    screen.blit(txt_runtime, (MAZE_WIDTH + 15, 50))
+    screen.blit(txt_visited, (MAZE_WIDTH + 15, 80))
+    screen.blit(txt_length, (MAZE_WIDTH + 15, 110))
+
+    # Border around the maze
+    maze_border = pg.Rect(
+        0, 0, MAZE_WIDTH, MAZE_HEIGHT
+    )
+    pg.draw.rect(screen, (0, 0, 0), maze_border, 2)
+
+    # Bottom control panel
+    bottom_rect = pg.Rect(
+        0, MAZE_HEIGHT, SCREEN_WIDTH, PANEL_HEIGHT
+    )
+
+    pg.draw.rect(screen, (245, 245, 245), bottom_rect)
+    pg.draw.rect(screen, (0, 0, 0), bottom_rect, 2)
+
+    # Separators between control areas
+    pg.draw.line(
+        screen,
+        (0, 0, 0),
+        (210, MAZE_HEIGHT),
+        (210, SCREEN_HEIGHT),
+        2
+    )
+
+    pg.draw.line(
+        screen,
+        (0, 0, 0),
+        (MAZE_WIDTH, MAZE_HEIGHT),
+        (MAZE_WIDTH, SCREEN_HEIGHT),
+        2
+    )
+
+    # Draw controls
+    speed_slider.draw(screen, font)
+
+    btn_wall.draw(screen, font)
+    btn_start.draw(screen, font)
+    btn_target.draw(screen, font)
+    btn_maze.draw(screen, font)
+
+    btn_run.draw(screen, font)
+    btn_clear.draw(screen, font)
+
+    # Draw the dropdown last so its menu stays visible
+    algo_dropdown.draw(screen, font)
+    btn_compare.draw(screen, font)
+
+
+# ==================================================
+# 9. CLEAR VISUALIZATION AND STATISTICS
+# ==================================================
+
+def clear_visualization():
+    global runtime_ms
+    global visited_count
+    global path_length
+    global path_coords
+
+    animation.clear()
+
+    runtime_ms = 0.0
+    visited_count = 0
+    path_length = 0
+    path_coords = []
+
+
+# ==================================================
+# 10. MAIN LOOP
+# ==================================================
 
 running = True
 
 while running:
+
     for event in pg.event.get():
+
+        # Close the window
         if event.type == pg.QUIT:
             running = False
+            continue
+        # Close comparison view with ESC
+        if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+            comparison_view.visible = False
+        # Let the slider handle its own events
+        speed_slider.handle_event(event)
 
-        # Mouse button pressed
-        if event.type == pg.MOUSEBUTTONDOWN:
-            if event.button == 1:
+        # Let the dropdown handle its own events
+        if algo_dropdown.handle_event(event):
+            continue
+
+        # Mouse pressed
+        if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+            mx, my = event.pos
+
+            # Click on the maze
+            if mx < MAZE_WIDTH and my < MAZE_HEIGHT:
                 mouse_handler.mouse_pressed = True
-                x,y = pg.mouse.get_pos()
+
                 mouse_handler.handle_click(
-                    x, y, is_initial_press = True
+                    mx,
+                    my,
+                    is_initial_press=True
                 )
 
-        # Mouse button released
-        if event.type == pg.MOUSEBUTTONUP:
-            if event.button == 1:
-                mouse_handler.mouse_pressed = False
-
-        # Keyboard
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_w:
+            # Select Wall mode
+            elif btn_wall.is_clicked((mx, my)):
                 mouse_handler.set_mode("wall")
 
-            elif event.key == pg.K_s:
+                btn_wall.selected = True
+                btn_start.selected = False
+                btn_target.selected = False
+
+            # Select Start mode
+            elif btn_start.is_clicked((mx, my)):
                 mouse_handler.set_mode("start")
 
-            elif event.key == pg.K_t:
+                btn_wall.selected = False
+                btn_start.selected = True
+                btn_target.selected = False
+
+            # Select Target mode
+            elif btn_target.is_clicked((mx, my)):
                 mouse_handler.set_mode("target")
 
-            # Press M to generate a random maze
-            elif event.key == pg.K_m:
+                btn_wall.selected = False
+                btn_start.selected = False
+                btn_target.selected = True
+
+            # Generate a maze
+            elif btn_maze.is_clicked((mx, my)):
+                clear_visualization()
                 maze_gen.generate_maze()
 
-            
-            # Press B to run BFS
-            elif event.key == pg.K_b:
-                visited_order, found_path, stats = run_and_record(
-                    "BFS", bfs.bfs, grid,
-                    start=grid.start, target=grid.target
-                )
-                print(stats)
-                print(get_path_coordinates(found_path))
-                start_animation(visited_order, found_path)
+            # Run selected algorithm
+            elif btn_run.is_clicked((mx, my)):
+                execute_selected_algorithm()
 
-            # Press D to run DFS
-            elif event.key == pg.K_d:
-                start, target = mouse_handler.find_start_target()
+            # Clear the visualization
+            elif btn_clear.is_clicked((mx, my)):
+                clear_visualization()
+            elif btn_compare.is_clicked((mx, my)):
+                comparison_view.visible = True
 
-                if start is not None and target is not None:
-                    visited_order, found_path, stats = run_and_record(
-                        "DFS", dfs, grid, start, target, start=start, target=target
-                    )
-                    print(stats)
-                    print(get_path_coordinates(found_path))
-                    start_animation(visited_order, found_path)
-            
-            # Press J to run Dijkstra
-            elif event.key == pg.K_j:
-                start, target = mouse_handler.find_start_target()
+        # Mouse released
+        elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
+            mouse_handler.mouse_pressed = False
 
-                if start is not None and target is not None:
-                    visited_order, found_path, stats = run_and_record(
-                        "Dijkstra", dijkstra, grid, start, target,
-                        start=start, target=target
-                    )
-                    print(stats)
-                    print(get_path_coordinates(found_path))
-                    start_animation(visited_order, found_path)
-           
-            # Press A to run A*
-            elif event.key == pg.K_a:
-                start, target = mouse_handler.find_start_target()
-
-                if start is not None and target is not None:
-                    visited_order, found_path = astar(
-                        grid, start, target
-                    )
-                    start_animation(visited_order, found_path)
-
-            # Press UP to speed up
-            elif event.key == pg.K_UP:
-                SIMULATION_DELAY = max(
-                    MIN_DELAY,
-                    SIMULATION_DELAY - DELAY_STEP
-                )
-
-            # Press DOWN to slow down
-            elif event.key == pg.K_DOWN:
-                SIMULATION_DELAY = min(
-                    MAX_DELAY,
-                    SIMULATION_DELAY + DELAY_STEP
-                )
-
-            # Press C to clear the visualization
-            elif event.key == pg.K_c:
-                animation_active = False
-                grid.clear_path()
-                path = []
-
-    # Handle mouse
+    # Handle mouse dragging to place walls
     if mouse_handler.mouse_pressed:
-        x, y = pg.mouse.get_pos()
-        mouse_handler.handle_click(x, y)
+        mx, my = pg.mouse.get_pos()
 
-    # Update the animation without blocking the game loop
-    update_animation()
+        if mx < MAZE_WIDTH and my < MAZE_HEIGHT:
+            mouse_handler.handle_click(mx, my)
 
-    # Draw
+    # Synchronize animation speed with the slider
+    animation.delay = speed_slider.val
+
+    # Update animation
+    animation.update()
+
+    # Render the screen
     screen.fill((255, 255, 255))
-    draw_grid()
 
-    controls_note.draw(screen)
+    draw_grid()
+    draw_ui_panels()
+    if stats_manager.history:
+        latest_maze_id = stats_manager.history[-1]["maze_id"]
+        results = stats_manager.compare_algorithms(latest_maze_id)
+    else:
+        results = []
+
+    comparison_view.draw(screen, results)
 
     pg.display.update()
     clock.tick(60)
+
+
+# ==================================================
+# 11. SHUTDOWN
+# ==================================================
 
 pg.quit()

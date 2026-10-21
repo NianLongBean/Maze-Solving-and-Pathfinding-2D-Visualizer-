@@ -27,9 +27,16 @@ def astar(grid, start, target):
 
     visited_order = []
 
+    closed_set = set()
+
     while open_heap:
 
         current_f, _, current = heapq.heappop(open_heap)
+
+        if current in closed_set:
+            continue
+
+        closed_set.add(current)
 
         if current != start and current != target:
             visited_order.append(current)
@@ -40,6 +47,8 @@ def astar(grid, start, target):
         for neighbour in grid.get_neighbours(current):
 
             if neighbour.state == Cell.WALL:
+                continue
+            if neighbour in closed_set:
                 continue
 
             tentative_g = g_score[current] + 1

@@ -33,7 +33,7 @@ class AssetLoader:
         except pg.error:
             # Trường hợp chưa có file ảnh, hệ thống sẽ tự fallback về vẽ màu mặc định
             self.has_assets = False
-            
+
     # Hàm vẽ nhận tham số screen, cell, x, y từ ngoài truyền vào
     def draw_cell(self, screen, cell, x, y):
         if not self.has_assets:

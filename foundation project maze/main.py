@@ -17,6 +17,7 @@ from data_recorder import run_and_record
 from path_position import get_path_coordinates
 from ui import Button, Slider, Dropdown
 from stats_manager import StatsManager
+from dataset_exporter import export_comparison_dataset
 
 
 # ==================================================
@@ -77,6 +78,7 @@ path_length = 0
 path_coords = []
 stats_manager = StatsManager()
 active_stats_tab = "Stats"
+comparison_session_data = []
 
 # ==================================================
 # 5. CREATE UI COMPONENTS
@@ -172,6 +174,13 @@ btn_clear = Button(
     "Clear",
     bg_color=(240, 130, 130)
 )
+btn_export = Button(
+    MAZE_WIDTH + 15,
+    MAZE_HEIGHT + 105,
+    150,
+    35,
+    "Export Dataset"
+)
 tab_stats = Button(0, 0, 70, 30, "Stats")
 tab_ranking = Button(0, 0, 90, 30, "Ranking")
 tab_stats.selected = True
@@ -203,8 +212,15 @@ def layout_controls():
         button.rect.update(x, bottom_y + 15, width, 32)
         x += width + gap
 
-    for button, y_offset in ((btn_run, 15), (btn_clear, 60)):
-        button.rect.topleft = (MAZE_WIDTH + 15, bottom_y + y_offset)
+    for button, y_offset in (
+        (btn_run, 15),
+        (btn_clear, 60),
+        (btn_export, 105),
+    ):
+        button.rect.topleft = (
+            MAZE_WIDTH + 15,
+            bottom_y + y_offset
+        )
 
     tab_stats.rect.topleft = (MAZE_WIDTH + 10, 10)
     tab_ranking.rect.topleft = (MAZE_WIDTH + 85, 10)
@@ -314,6 +330,12 @@ def execute_selected_algorithm():
 
     # Save statistics only once
     stats_manager.record(stats, maze_id=maze_id)
+    # Save result for the current session's dataset
+    comparison_session_data.append({
+        **stats,
+        "algorithm": selected,
+        "maze_id": maze_id,
+    })
 
     # Start the animation only once
     animation.delay = speed_slider.val
@@ -543,6 +565,7 @@ def draw_ui_panels():
 
     btn_run.draw(screen, font)
     btn_clear.draw(screen, font)
+    btn_export.draw(screen, font)
 
     # Draw dropdowns last so their menus stay visible
     algo_dropdown.draw(screen, font)
@@ -687,9 +710,45 @@ while running:
             elif btn_run.is_clicked((mx, my)):
                 execute_selected_algorithm()
 
+            
             # Clear the visualization
             elif btn_clear.is_clicked((mx, my)):
                 clear_visualization()
+
+            
+            # Export results for the current maze only
+            elif btn_export.is_clicked((mx, my)):
+                start, target = mouse_handler.find_start_target()
+
+                if start is None or target is None:
+                    print("Please set Start and Target first.")
+
+                else:
+                    current_maze_id = stats_manager.generate_maze_id(
+                        grid, start, target
+                    )
+
+                    current_results = [
+                        record
+                        for record in comparison_session_data
+                        if record["maze_id"] == current_maze_id
+                    ]
+
+                    output_path = export_comparison_dataset(
+                        current_results
+                    )
+
+                    if output_path is None:
+                        print(
+                            "No comparison data for this maze. "
+                            "Run an algorithm first."
+                        )
+                    else:
+                        print(
+                            f"Dataset exported successfully: {output_path}"
+                        )
+
+
 
         # Mouse released
         elif event.type == pg.MOUSEBUTTONUP and event.button == 1:

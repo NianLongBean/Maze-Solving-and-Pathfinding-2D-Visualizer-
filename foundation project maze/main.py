@@ -58,6 +58,8 @@ path_length = 0
 path_coords = []
 stats_manager = StatsManager()
 comparison_view = ComparisonView()
+
+
 def test_stats_comparison(maze_id):
     results = stats_manager.compare_algorithms(maze_id)
 
@@ -77,6 +79,7 @@ def test_stats_comparison(maze_id):
             f"Visited: {result['avg_visited_count']:.1f} | "
             f"Path: {result['avg_path_length']}"
         )
+
 
 algo_dropdown = Dropdown(
     15,
@@ -139,6 +142,7 @@ btn_compare = Button(
     "Compare",
 )
 
+
 def execute_selected_algorithm():
     global runtime_ms
     global visited_count
@@ -149,7 +153,7 @@ def execute_selected_algorithm():
 
     if start is None or target is None:
         return
-    
+
     maze_id = stats_manager.generate_maze_id(
         grid, start, target
     )

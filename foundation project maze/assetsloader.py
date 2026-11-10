@@ -4,6 +4,7 @@ import pygame as pg
 
 from cell import Cell
 
+
 class AssetLoader:
 
     def __init__(self, cell_size):
@@ -31,7 +32,7 @@ class AssetLoader:
             self.has_assets = True
         except pg.error:
             self.has_assets = False
-            
+
     def draw_cell(self, screen, cell, x, y):
         if not self.has_assets:
             return False  # Trả về False để vẽ màu bằng rect mặc định

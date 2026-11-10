@@ -33,7 +33,8 @@ class ControlsNote:
             self.btn_text.get_height() + self.padding * 2,
         )
 
-        dummy_lines = [self.font.render(t, True, (0, 0, 0)) for t in self.controls]
+        dummy_lines = [self.font.render(t, True, (0, 0, 0))
+                       for t in self.controls]
         max_w = max(line.get_width() for line in dummy_lines)
         line_h = dummy_lines[0].get_height()
         spacing = 4
@@ -57,12 +58,16 @@ class ControlsNote:
             self._draw_collapsed_button(surface)
 
     def _draw_collapsed_button(self, surface):
-        overlay = pg.Surface((self.btn_rect.width, self.btn_rect.height), pg.SRCALPHA)
-        pg.draw.rect(overlay, (20, 20, 20, 210), overlay.get_rect(), border_radius=6)
-        pg.draw.rect(overlay, (100, 100, 100, 255), overlay.get_rect(), width=2, border_radius=6)
+        overlay = pg.Surface(
+            (self.btn_rect.width, self.btn_rect.height), pg.SRCALPHA)
+        pg.draw.rect(overlay, (20, 20, 20, 210),
+                     overlay.get_rect(), border_radius=6)
+        pg.draw.rect(overlay, (100, 100, 100, 255),
+                     overlay.get_rect(), width=2, border_radius=6)
 
         surface.blit(overlay, (self.x, self.y))
-        surface.blit(self.btn_text, (self.x + self.padding, self.y + self.padding))
+        surface.blit(self.btn_text, (self.x +
+                     self.padding, self.y + self.padding))
 
     def _draw_expanded_panel(self, surface):
         rendered_lines = []
@@ -73,9 +78,12 @@ class ControlsNote:
         line_height = rendered_lines[0].get_height()
         spacing = 4
 
-        overlay = pg.Surface((self.panel_rect.width, self.panel_rect.height), pg.SRCALPHA)
-        pg.draw.rect(overlay, (20, 20, 20, 230), overlay.get_rect(), border_radius=8)
-        pg.draw.rect(overlay, (100, 100, 100, 255), overlay.get_rect(), width=2, border_radius=8)
+        overlay = pg.Surface(
+            (self.panel_rect.width, self.panel_rect.height), pg.SRCALPHA)
+        pg.draw.rect(overlay, (20, 20, 20, 230),
+                     overlay.get_rect(), border_radius=8)
+        pg.draw.rect(overlay, (100, 100, 100, 255),
+                     overlay.get_rect(), width=2, border_radius=8)
 
         surface.blit(overlay, (self.x, self.y))
 

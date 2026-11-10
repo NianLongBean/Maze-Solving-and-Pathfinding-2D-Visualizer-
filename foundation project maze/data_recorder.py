@@ -5,7 +5,7 @@ from time import perf_counter
 def calculate_path_length(path, start, target):
     if not path:
         return 0
-    
+
     path_length = len(path)
     if path[0] != start:
         path_length += 0
@@ -14,6 +14,7 @@ def calculate_path_length(path, start, target):
     if path[-1] != target:
         path_length += 1
     return path_length
+
 
 def run_and_record(name, algorithm, *args, start, target):
     start_time = perf_counter()

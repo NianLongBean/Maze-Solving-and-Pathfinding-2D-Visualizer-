@@ -7,16 +7,14 @@ class MazeGenerator:
     def __init__(self, grid):
         self.grid = grid
 
-
     def get_one_off_neighbours(self, cell):
         neighbours = []
         row = cell.row
         col = cell.col
 
-
         if row > 1:
             neighbours.append(self.grid.get_cell(row - 2, col))
-            
+
         if row < self.grid.rows - 2:
             neighbours.append(self.grid.get_cell(row + 2, col))
 
@@ -29,14 +27,14 @@ class MazeGenerator:
         return neighbours
 
     def generate_maze(self):
-        #1.Fill entire grid with wall
-        for r in range (self.grid.rows):
-            for c in range (self.grid.cols):
+        # 1.Fill entire grid with wall
+        for r in range(self.grid.rows):
+            for c in range(self.grid.cols):
                 cell = self.grid.get_cell(r, c)
                 cell.state = Cell.WALL
 
         start_cell = self.grid.get_cell(1, 1)
-        start_cell.state= Cell.EMPTY
+        start_cell.state = Cell.EMPTY
 
         stack = [start_cell]
         visited = {start_cell}
@@ -44,13 +42,13 @@ class MazeGenerator:
         while stack:
             current = stack[-1]
             unvisited_neighbours = [
-                n 
+                n
                 for n in self.get_one_off_neighbours(current)
                 if n not in visited
             ]
 
             if unvisited_neighbours:
-                next_cell=random.choice(unvisited_neighbours)
+                next_cell = random.choice(unvisited_neighbours)
 
                 wall_row = (current.row + next_cell.row)//2
                 wall_col = (current.col + next_cell.col)//2
@@ -62,9 +60,10 @@ class MazeGenerator:
                 visited.add(next_cell)
                 visited.add(wall_cell)
                 stack.append(next_cell)
-            else:stack.pop()
+            else:
+                stack.pop()
 
         if self.grid.start:
-                    self.grid.start.state = Cell.START
+            self.grid.start.state = Cell.START
         if self.grid.target:
-                    self.grid.target.state = Cell.TARGET
+            self.grid.target.state = Cell.TARGET

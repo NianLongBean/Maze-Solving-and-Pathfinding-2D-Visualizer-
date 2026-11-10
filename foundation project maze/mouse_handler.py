@@ -1,6 +1,7 @@
 from cell import Cell
 from grid import Grid
 
+
 class MouseHandler:
 
     def __init__(self, grid, cell_size):
@@ -8,7 +9,7 @@ class MouseHandler:
         self.cell_size = cell_size
         self.mouse_pressed = False
         self.mode = "wall"
-        self.draw_wall_mode= True 
+        self.draw_wall_mode = True
 
     def set_mode(self, mode):
         self.mode = mode
@@ -18,19 +19,18 @@ class MouseHandler:
         row = y // self.cell_size
         return row, col
 
-
     def handle_click(self, x, y, is_initial_press=False):
         row, col = self.mouse_to_cell(x, y)
         if row < 0 or row >= self.grid.rows:
             return
         if col < 0 or col >= self.grid.cols:
             return
-        
+
         cell = self.grid.get_cell(row, col)
-        
+
         if self.mode == "wall":
             if is_initial_press:
-                self.draw_wall_mode=cell.state!=Cell.WALL
+                self.draw_wall_mode = cell.state != Cell.WALL
             if self.draw_wall_mode and cell.state != Cell.WALL:
                 cell.state = Cell.WALL
             elif not self.draw_wall_mode and cell.state == Cell.WALL:
@@ -46,16 +46,14 @@ class MouseHandler:
         elif cell.state == Cell.WALL:
             cell.state = Cell.EMPTY
 
-
     def set_start(self, cell):
         if self.grid.start is not None:
             self.grid.start.state = Cell.EMPTY
         self.grid.start = cell
         cell.state = Cell.START
 
-
     def set_target(self, cell):
-        if cell.state== Cell.WALL or cell == self.grid.start:
+        if cell.state == Cell.WALL or cell == self.grid.start:
             return
 
         if self.grid.target is not None:

@@ -11,29 +11,30 @@ class Grid:
         for r in range(rows):
             row = []
             for c in range(cols):
-                row.append(Cell(r,c)) 
+                row.append(Cell(r, c))
             self.cells.append(row)
 
         self.start = None
         self.target = None
-    def get_cell(self,row,col):
+
+    def get_cell(self, row, col):
         return self.cells[row][col]
 
     def get_neighbours(self, cell):
-        neighbours=[]
+        neighbours = []
         r, c = cell.row, cell.col
-        directions = [(-1, 0),(1, 0),(0, -1),(0, 1)] 
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
         for dr, dc in directions:
-            nr, nc = r + dr, c + dc 
+            nr, nc = r + dr, c + dc
             if 0 <= nr < self.rows and 0 <= nc < self.cols:
                 neighbours.append(self.cells[nr][nc])
         return neighbours
 
     def clear_path(self):
         for r in range(self.rows):
-            for c in range (self.cols):
-                cell=self.cells[r][c]
-                cell.parents= None
+            for c in range(self.cols):
+                cell = self.cells[r][c]
+                cell.parents = None
                 if cell.state in (Cell.VISITED, Cell.PATH):
                     cell.state = Cell.EMPTY

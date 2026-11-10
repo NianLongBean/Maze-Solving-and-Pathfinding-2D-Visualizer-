@@ -1,5 +1,6 @@
 import pygame as pg
 
+
 class Button:
     def __init__(self, x, y, width, height, text, bg_color=(220, 220, 220), hover_color=(190, 190, 190), text_color=(0, 0, 0)):
         self.rect = pg.Rect(x, y, width, height)
@@ -11,7 +12,8 @@ class Button:
 
     def draw(self, surface, font):
         mouse_pos = pg.mouse.get_pos()
-        color = self.hover_color if (self.rect.collidepoint(mouse_pos) or self.selected) else self.bg_color
+        color = self.hover_color if (self.rect.collidepoint(
+            mouse_pos) or self.selected) else self.bg_color
         pg.draw.rect(surface, color, self.rect, border_radius=4)
         pg.draw.rect(surface, (80, 80, 80), self.rect, 2, border_radius=4)
 
@@ -30,7 +32,7 @@ class Slider:
         self.max_val = max_val
         self.val = initial_val
         self.label = label
-        
+
         ratio = (initial_val - min_val) / (max_val - min_val)
         self.handle_x = x + int(ratio * width)
         self.handle_y = y + 3
@@ -42,10 +44,12 @@ class Slider:
         surface.blit(lbl_surf, (self.rect.x, self.rect.y + 12))
 
         pg.draw.rect(surface, (180, 180, 180), self.rect, border_radius=3)
-        active_rect = pg.Rect(self.rect.x, self.rect.y, self.handle_x - self.rect.x, self.rect.height)
+        active_rect = pg.Rect(self.rect.x, self.rect.y,
+                              self.handle_x - self.rect.x, self.rect.height)
         pg.draw.rect(surface, (50, 150, 240), active_rect, border_radius=3)
 
-        pg.draw.circle(surface, (30, 30, 30), (self.handle_x, self.handle_y), self.handle_radius)
+        pg.draw.circle(surface, (30, 30, 30), (self.handle_x,
+                       self.handle_y), self.handle_radius)
 
     def handle_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
@@ -63,7 +67,8 @@ class Slider:
             self._update_pos(event.pos[0])
 
     def _update_pos(self, mouse_x):
-        self.handle_x = max(self.rect.x, min(mouse_x, self.rect.x + self.rect.width))
+        self.handle_x = max(self.rect.x, min(
+            mouse_x, self.rect.x + self.rect.width))
         ratio = (self.handle_x - self.rect.x) / self.rect.width
         self.val = int(self.min_val + ratio * (self.max_val - self.min_val))
 
@@ -87,18 +92,21 @@ class Dropdown:
 
         text = f"{self.options[self.selected_index]}  ▲" if self.is_open else f"{self.options[self.selected_index]}  ▼"
         txt_surf = font.render(text, True, (0, 0, 0))
-        surface.blit(txt_surf, (self.rect.x + 10, self.rect.y + (self.rect.height - txt_surf.get_height()) // 2))
+        surface.blit(txt_surf, (self.rect.x + 10, self.rect.y +
+                     (self.rect.height - txt_surf.get_height()) // 2))
 
         if self.is_open:
             for i, opt_rect in enumerate(self.option_rects):
                 mouse_pos = pg.mouse.get_pos()
-                color = (210, 230, 255) if opt_rect.collidepoint(mouse_pos) else (255, 255, 255)
-                
+                color = (210, 230, 255) if opt_rect.collidepoint(
+                    mouse_pos) else (255, 255, 255)
+
                 pg.draw.rect(surface, color, opt_rect)
                 pg.draw.rect(surface, (0, 0, 0), opt_rect, 1)
 
                 opt_surf = font.render(self.options[i], True, (0, 0, 0))
-                surface.blit(opt_surf, (opt_rect.x + 10, opt_rect.y + (opt_rect.height - opt_surf.get_height()) // 2))
+                surface.blit(opt_surf, (opt_rect.x + 10, opt_rect.y +
+                             (opt_rect.height - opt_surf.get_height()) // 2))
 
     def handle_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:

@@ -31,7 +31,7 @@ def astar(grid, start, target):
 
     while open_heap:
 
-        current_f, _, current = heapq.heappop(open_heap)
+        _, _, current = heapq.heappop(open_heap)
 
         if current in closed_set:
             continue

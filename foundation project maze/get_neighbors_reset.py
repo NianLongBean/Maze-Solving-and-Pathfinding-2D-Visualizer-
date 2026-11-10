@@ -19,16 +19,16 @@ class Grid:
     def get_cell(self, row, col):
         return self.cells[self.rows][self.cols]
 
-    def get_neighbors(self, cell):
-        neighbors = []
+    def get_neighbours(self, cell):
+        neighbours = []
         r, c = cell.row, cell.col
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
         for dr, dc in directions:
             nr, nc = r + dr, c + dc
             if 0 <= nr < self.rows and 0 <= nc < self.cols:
-                neighbors.append(self.cells[nr][nc])
-        return neighbors
+                neighbours.append(self.cells[nr][nc])
+        return neighbours
 
     def clear_path(self):
         for r in range(self.rows):

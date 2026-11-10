@@ -218,9 +218,6 @@ def execute_selected_algorithm():
     animation.delay = speed_slider.val
     animation.start(visited_order, found_path)
 
-    animation.delay = speed_slider.val
-    animation.start(visited_order, found_path)
-
 
 def draw_grid():
     for row in range(grid.rows):

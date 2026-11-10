@@ -75,8 +75,6 @@ class Dropdown:
         self.selected_index = 0
         self.is_open = False
 
-        # Tự động xếp các ô lựa chọn mở ngược lên phía trên (Fly-up)
-        # để hiển thị nguyên vẹn cả 4 thuật toán mà không bị tràn viền hay cần cuộn
         self.option_rects = []
         num_opts = len(options)
         for i in range(num_opts):
@@ -84,7 +82,6 @@ class Dropdown:
             self.option_rects.append(pg.Rect(x, opt_y, width, height))
 
     def draw(self, surface, font):
-        # 1. Nút hiển thị chính
         pg.draw.rect(surface, (245, 245, 245), self.rect, border_radius=4)
         pg.draw.rect(surface, (0, 0, 0), self.rect, 2, border_radius=4)
 
@@ -92,7 +89,6 @@ class Dropdown:
         txt_surf = font.render(text, True, (0, 0, 0))
         surface.blit(txt_surf, (self.rect.x + 10, self.rect.y + (self.rect.height - txt_surf.get_height()) // 2))
 
-        # 2. Hiển thị danh sách 4 thuật toán mở ngược lên trên
         if self.is_open:
             for i, opt_rect in enumerate(self.option_rects):
                 mouse_pos = pg.mouse.get_pos()
@@ -106,19 +102,16 @@ class Dropdown:
 
     def handle_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
-            # Click vào nút bật/tắt menu
             if self.rect.collidepoint(event.pos):
                 self.is_open = not self.is_open
                 return True
 
-            # Click chọn 1 trong các thuật toán
             if self.is_open:
                 for i, opt_rect in enumerate(self.option_rects):
                     if opt_rect.collidepoint(event.pos):
                         self.selected_index = i
                         self.is_open = False
                         return True
-                # Bấm ra ngoài thì đóng menu
                 self.is_open = False
 
         return False

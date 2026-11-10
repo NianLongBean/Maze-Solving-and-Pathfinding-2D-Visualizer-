@@ -50,11 +50,9 @@ def dfs(grid, start, target):
                 parent[neighbor] = current
                 stack.append(neighbor)
 
-    # Không tìm thấy Target
     if target not in visited:
         return visited_order, []
 
-    # Tạo đường đi từ Target về Start
     path = []
     current = target
 

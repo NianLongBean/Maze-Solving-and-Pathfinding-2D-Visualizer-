@@ -9,7 +9,6 @@ class AssetLoader:
     def __init__(self, cell_size):
         self.cell_size = cell_size
 
-        # Get the directory where this script (assetsloader.py) is located
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
         try:
@@ -31,10 +30,8 @@ class AssetLoader:
             )
             self.has_assets = True
         except pg.error:
-            # Trường hợp chưa có file ảnh, hệ thống sẽ tự fallback về vẽ màu mặc định
             self.has_assets = False
             
-    # Hàm vẽ nhận tham số screen, cell, x, y từ ngoài truyền vào
     def draw_cell(self, screen, cell, x, y):
         if not self.has_assets:
             return False  # Trả về False để vẽ màu bằng rect mặc định

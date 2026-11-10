@@ -25,15 +25,8 @@ run = True
 while run:
 
     screen.fill(BG)
-
-    #display image
-    # screen.blit(sprite_sheet_image_idle, (0,0))
-    # screen.blit(sprite_sheet_image_walk, (50,50))
-
-    #show frame image
     screen.blit(frame_0,(0,0))
 
-    #event handler 
     for event in pg.event.get():
         if event.type == pg.QUIT:
             run = False

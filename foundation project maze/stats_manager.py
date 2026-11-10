@@ -9,7 +9,6 @@ class StatsManager:
         self.csv_file = csv_file
         self.history = []
 
-        # Create the CSV file with headers if it does not exist.
         if not os.path.exists(self.csv_file):
             with open(self.csv_file, "w", newline="", encoding="utf-8-sig") as file:
                 writer = csv.DictWriter(

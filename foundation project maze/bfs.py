@@ -6,7 +6,6 @@ def bfs(grid):
     if not grid.start or not grid.target:
         return [], []
 
-    # grid.clear_path()
     queue = deque([grid.start])
     visited = {grid.start}
 
@@ -29,7 +28,6 @@ def bfs(grid):
                 neighbour.parent = current
                 queue.append(neighbour)
 
-    # Truy vết đường đi (Shortest Path)[cite: 1]
     path = []
     if found:
         curr = grid.target.parent

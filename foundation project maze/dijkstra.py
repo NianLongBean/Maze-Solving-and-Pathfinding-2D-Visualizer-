@@ -6,11 +6,9 @@ from cell import Cell
 counter = count()
 
 def dijkstra(grid, start, target):
-    # Count distances from start to each cell and store them
     distance = {start: 0}
     parent = {}
     
-    # (distance, cell)
     priority_queue = [(0, next(counter), start)]
     visited = set()
     visited_order = []
@@ -23,7 +21,6 @@ def dijkstra(grid, start, target):
         if current != start and current != target:visited_order.append(current)
         if current == target: break
 
-        # Check all valid neighbours (ignore walls and already visited cells)
         for neighbour in grid.get_neighbours(current):
             if neighbour.state == Cell.WALL: continue
             new_distance = current_distance + 1
@@ -35,10 +32,8 @@ def dijkstra(grid, start, target):
                     (new_distance, next(counter), neighbour)
                 )
 
-    # did not find a path to the target
     if target not in visited: return visited_order, []
 
-    # final path reconstruction
     path = []
     current = target
     while current != start: 

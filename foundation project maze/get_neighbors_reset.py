@@ -10,7 +10,7 @@ class Grid:
         for r in range(rows):
             row = []
             for c in range(cols):
-                row.append(Cell(r,c)) #append adds a single element to the end of a collection
+                row.append(Cell(r,c)) 
             self.cells.append(row)
             self.start = None
             self.target = None
@@ -20,15 +20,14 @@ class Grid:
     def get_neighbors(self, cell):
         neighbors=[]
         r, c = cell.row, cell.col
-        directions = [(-1, 0),(1, 0),(0, -1),(0, 1)] #phai,trai,tren,duoi
+        directions = [(-1, 0),(1, 0),(0, -1),(0, 1)] 
 
         for dr, dc in directions:
-            nr, nc = r + dr, c + dc #n is neighbors, d is direction
+            nr, nc = r + dr, c + dc 
             if 0 <= nr < self.rows and 0 <= nc < self.cols:
                 neighbors.append(self.cells[nr][nc])
         return neighbors
 
-    #clear
     def clear_path(self):
         for r in range(self.rows):
             for c in range (self.cols):

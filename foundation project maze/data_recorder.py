@@ -16,16 +16,13 @@ def calculate_path_length(path, start, target):
     return path_length
 
 def run_and_record(name, algorithm, *args, start, target):
-    #execution time 
     start_time = perf_counter()
     visited_order, path = algorithm(*args)
     end_time = perf_counter()
     runtime_ms = (end_time - start_time) * 1000
 
-    #record explored cells
     visited_count = len(visited_order)
 
-    # recỏd moves in the path
     path_length = calculate_path_length(path, start, target)
 
     stats = {

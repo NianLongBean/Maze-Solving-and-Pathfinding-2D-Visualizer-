@@ -14,13 +14,11 @@ class AnimationController:
     ):
         self.grid = grid
 
-        # Animation settings
         self.delay = delay
         self.min_delay = min_delay
         self.max_delay = max_delay
         self.delay_step = delay_step
 
-        # Animation state
         self.active = False
         self.visited = []
         self.path_cells = []
@@ -31,14 +29,11 @@ class AnimationController:
         self.last_update = 0
 
     def start(self, visited_order, found_path):
-        # Clear the previous visualization
         self.clear()
 
-        # Store algorithm results
         self.visited = list(visited_order)
         self.path_cells = list(found_path)
 
-        # Reset animation progress
         self.visited_index = 0
         self.path_index = 0
         self.phase = "visited"
@@ -52,13 +47,11 @@ class AnimationController:
 
         current_time = pg.time.get_ticks()
 
-        # Wait until the next update is due
         if current_time - self.last_update < self.delay:
             return
 
         self.last_update = current_time
 
-        # Phase 1: Animate visited cells
         if self.phase == "visited":
             if self.visited_index < len(self.visited):
                 cell = self.visited[self.visited_index]
@@ -70,7 +63,6 @@ class AnimationController:
             else:
                 self.phase = "path"
 
-        # Phase 2: Animate the final path
         elif self.phase == "path":
             if self.path_index < len(self.path_cells):
                 cell = self.path_cells[self.path_index]

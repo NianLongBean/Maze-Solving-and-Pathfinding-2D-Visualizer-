@@ -75,6 +75,9 @@ runtime_ms = 0.0
 visited_count = 0
 path_length = 0
 path_coords = []
+no_path_notification_pending = False
+notification_message = ""
+notification_until = 0
 stats_manager = StatsManager()
 active_stats_tab = "Stats"
 
@@ -106,7 +109,12 @@ maze_dropdown = Dropdown(
     MAZE_HEIGHT + 60,
     235,
     32,
-    ["Recursive Backtracking", "Randomized Prim", "Binary Tree"],
+    [
+        "Recursive Backtracking",
+        "Randomized Prim",
+        "Binary Tree",
+        "Random (Loops / No Path)",
+    ],
     open_direction="down",
     label="Maze",
 )
@@ -245,12 +253,16 @@ def execute_selected_algorithm():
     global visited_count
     global path_length
     global path_coords
+    global no_path_notification_pending, notification_message
 
     start, target = mouse_handler.find_start_target()
 
     # Start and target must both exist
     if start is None or target is None:
         return
+
+    no_path_notification_pending = False
+    notification_message = ""
     
     maze_id = stats_manager.generate_maze_id(
         grid, start, target
@@ -311,6 +323,10 @@ def execute_selected_algorithm():
     visited_count = stats["visited_count"]
     path_length = stats["path_length"]
     path_coords = get_path_coordinates(found_path)
+    path_found = bool(found_path) or start == target
+    if selected == "BFS" and target in grid.get_neighbours(start):
+        path_found = True
+    no_path_notification_pending = not path_found
 
     # Save statistics only once
     stats_manager.record(stats, maze_id=maze_id)
@@ -567,6 +583,16 @@ def draw_pause_overlay():
     screen.blit(text, text.get_rect(center=(MAZE_WIDTH // 2, center[1] + 108)))
 
 
+def draw_notification():
+    if not notification_message or pg.time.get_ticks() >= notification_until:
+        return
+
+    text = font.render(notification_message, True, (255, 255, 255))
+    rect = text.get_rect(center=(MAZE_WIDTH // 2, 24)).inflate(24, 14)
+    pg.draw.rect(screen, (150, 35, 35), rect, border_radius=5)
+    screen.blit(text, text.get_rect(center=rect.center))
+
+
 # ==================================================
 # 9. CLEAR VISUALIZATION AND STATISTICS
 # ==================================================
@@ -576,6 +602,7 @@ def clear_visualization():
     global visited_count
     global path_length
     global path_coords
+    global no_path_notification_pending, notification_message
 
     animation.clear()
 
@@ -583,6 +610,8 @@ def clear_visualization():
     visited_count = 0
     path_length = 0
     path_coords = []
+    no_path_notification_pending = False
+    notification_message = ""
 
 
 # ==================================================
@@ -707,6 +736,10 @@ while running:
 
     # Update animation
     animation.update()
+    if no_path_notification_pending and not animation.active:
+        no_path_notification_pending = False
+        notification_message = "Entire maze explored: no path found."
+        notification_until = pg.time.get_ticks() + 3500
 
     # Render the screen
     screen.fill((255, 255, 255))
@@ -714,6 +747,7 @@ while running:
     draw_grid()
     draw_pause_overlay()
     draw_ui_panels()
+    draw_notification()
 
     pg.display.update()
     clock.tick(60)

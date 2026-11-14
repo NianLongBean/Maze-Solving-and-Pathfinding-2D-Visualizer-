@@ -116,11 +116,89 @@ class MazeGenerator:
                     row_offset, col_offset = random.choice(carve_options)
                     self.grid.get_cell(row + row_offset, col + col_offset).state = Cell.EMPTY
 
+    def _random_endpoints(self):
+        start = self.grid.start or self.grid.get_cell(1, 1)
+        target = self.grid.target or self.grid.get_cell(
+            self.grid.rows - 2,
+            self.grid.cols - 2,
+        )
+        return start, target
+
+    def _carve_route(self, waypoints):
+        for (row, col), (next_row, next_col) in zip(waypoints, waypoints[1:]):
+            row_step = (next_row > row) - (next_row < row)
+            col_step = (next_col > col) - (next_col < col)
+            while (row, col) != (next_row, next_col):
+                self.grid.get_cell(row, col).state = Cell.EMPTY
+                row += row_step
+                col += col_step
+            self.grid.get_cell(row, col).state = Cell.EMPTY
+
+    def _generate_random_connected(self, start, target):
+        for row in range(self.grid.rows):
+            for col in range(self.grid.cols):
+                if random.random() < 0.28:
+                    self.grid.get_cell(row, col).state = Cell.EMPTY
+
+        start_pos = (start.row, start.col)
+        target_pos = (target.row, target.col)
+        start_row, start_col = start_pos
+        target_row, target_col = target_pos
+
+        if start_pos == target_pos:
+            return
+
+        if start_row != target_row and start_col != target_col:
+            self._carve_route([start_pos, (start_row, target_col), target_pos])
+            self._carve_route([start_pos, (target_row, start_col), target_pos])
+        elif start_row == target_row:
+            detour_row = random.choice(
+                [row for row in range(self.grid.rows) if row != start_row]
+            )
+            self._carve_route([start_pos, target_pos])
+            self._carve_route([
+                start_pos,
+                (detour_row, start_col),
+                (detour_row, target_col),
+                target_pos,
+            ])
+        else:
+            detour_col = random.choice(
+                [col for col in range(self.grid.cols) if col != start_col]
+            )
+            self._carve_route([start_pos, target_pos])
+            self._carve_route([
+                start_pos,
+                (start_row, detour_col),
+                (target_row, detour_col),
+                target_pos,
+            ])
+
+    def _generate_random_disconnected(self, target):
+        for row in range(self.grid.rows):
+            for col in range(self.grid.cols):
+                if random.random() < 0.28:
+                    self.grid.get_cell(row, col).state = Cell.EMPTY
+
+        for neighbour in self.grid.get_neighbours(target):
+            neighbour.state = Cell.WALL
+
+    def _generate_random(self):
+        start, target = self._random_endpoints()
+        start_neighbours = self.grid.get_neighbours(start)
+        can_disconnect = start != target and target not in start_neighbours
+
+        if can_disconnect and random.random() < 0.4:
+            self._generate_random_disconnected(target)
+        else:
+            self._generate_random_connected(start, target)
+
     def generate_maze(self, algorithm="Recursive Backtracking"):
         generators = {
             "Recursive Backtracking": self._generate_backtracking,
             "Randomized Prim": self._generate_prim,
             "Binary Tree": self._generate_binary_tree,
+            "Random (Loops / No Path)": self._generate_random,
         }
         if algorithm not in generators:
             raise ValueError(f"Unknown maze generation algorithm: {algorithm}")
